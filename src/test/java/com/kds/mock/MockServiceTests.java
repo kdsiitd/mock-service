@@ -11,8 +11,6 @@ import com.kds.mock.service.MockService;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +21,9 @@ import org.springframework.http.MediaType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -47,7 +48,6 @@ class MockServiceTests {
         Mockito.when(endpointsRepository.findEndpointByPath("/path")).thenReturn(endpoints);
 
         List<Headers> headersList = new ArrayList<>();
-//        headersList.add(new Headers(endpoints, HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE));
         headersList.add(new Headers(endpoints, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
         Mockito.when(headersRepository.findAllByEndpointsId(1L)).thenReturn(headersList);
@@ -57,5 +57,13 @@ class MockServiceTests {
                         "" + "{\"name\" : \"test\"}"));
 
         MockResponse mockResponse = mockService.getMockResponseByPathAndMethod("/path", HttpMethod.GET.name());
+
+        assertNotNull(mockResponse);
+        assertAll(
+                () -> assertEquals(200, mockResponse.getStatusCode()),
+                () -> assertNotNull(mockResponse.getHeaders()),
+                () -> assertEquals(MediaType.APPLICATION_JSON_VALUE, Objects.requireNonNull(mockResponse.getHeaders().getContentType()).toString()),
+                () -> assertEquals("{\"name\" : \"test\"}", mockResponse.getBody())
+        );
     }
 }
