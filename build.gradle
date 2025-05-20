@@ -5,12 +5,19 @@ plugins {
 }
 
 group = 'com.kds.mock'
-version = '0.0.1-SNAPSHOT'
+version = '1.0.0-SNAPSHOT'
 
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
+}
+
+bootJar {
+	enabled = true
+}
+jar {
+	enabled = false
 }
 
 repositories {

@@ -8,6 +8,7 @@ import com.kds.mock.repository.EndpointsRepository;
 import com.kds.mock.repository.HeadersRepository;
 import com.kds.mock.repository.ResponsesRepository;
 import com.kds.mock.service.MockService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -24,6 +25,9 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -41,29 +45,105 @@ class MockServiceTests {
     @MockBean
     private ResponsesRepository responsesRepository;
 
+    private Endpoints testEndpoint;
+    private List<Headers> testHeaders;
+    private Responses testResponse;
+
+    @BeforeEach
+    void setUp() {
+        testEndpoint = new Endpoints("/test/path", 200, "Test endpoint");
+        testEndpoint.setId(1L);
+
+        testHeaders = new ArrayList<>();
+        testHeaders.add(new Headers(testEndpoint, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
+        testHeaders.add(new Headers(testEndpoint, "Custom-Header", "custom-value"));
+
+        testResponse = new Responses(testEndpoint, HttpMethod.GET.name(), 
+            MediaType.APPLICATION_JSON_VALUE, "{\"name\": \"test\"}");
+    }
+
     @Test
-    public void testMockResponse() {
-        Endpoints endpoints = new Endpoints("/path", 200, "description");
-        endpoints.setId(1L);
-        Mockito.when(endpointsRepository.findEndpointByPath("/path")).thenReturn(endpoints);
+    void testMockResponseWithValidEndpoint() {
+        when(endpointsRepository.findEndpointByPath("/test/path")).thenReturn(testEndpoint);
+        when(headersRepository.findAllByEndpointsId(1L)).thenReturn(testHeaders);
+        when(responsesRepository.findResponseByEndpointsIdAndMethod(1L, HttpMethod.GET.name()))
+                .thenReturn(testResponse);
 
-        List<Headers> headersList = new ArrayList<>();
-        headersList.add(new Headers(endpoints, HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
-
-        Mockito.when(headersRepository.findAllByEndpointsId(1L)).thenReturn(headersList);
-
-        Mockito.when(responsesRepository.findResponseByEndpointsIdAndMethod(1L, HttpMethod.GET.name()))
-                .thenReturn(new Responses(endpoints, HttpMethod.GET.name(), MediaType.APPLICATION_JSON_VALUE,
-                        "" + "{\"name\" : \"test\"}"));
-
-        MockResponse mockResponse = mockService.getMockResponseByPathAndMethod("/path", HttpMethod.GET.name());
+        MockResponse mockResponse = mockService.getMockResponseByPathAndMethod("/test/path", HttpMethod.GET.name());
 
         assertNotNull(mockResponse);
         assertAll(
-                () -> assertEquals(200, mockResponse.getStatusCode()),
-                () -> assertNotNull(mockResponse.getHeaders()),
-                () -> assertEquals(MediaType.APPLICATION_JSON_VALUE, Objects.requireNonNull(mockResponse.getHeaders().getContentType()).toString()),
-                () -> assertEquals("{\"name\" : \"test\"}", mockResponse.getBody())
+            () -> assertEquals(200, mockResponse.getStatusCode()),
+            () -> assertNotNull(mockResponse.getHeaders()),
+            () -> assertEquals(MediaType.APPLICATION_JSON_VALUE, 
+                Objects.requireNonNull(mockResponse.getHeaders().getContentType()).toString()),
+            () -> assertEquals("custom-value", mockResponse.getHeaders().getFirst("Custom-Header")),
+            () -> assertEquals("{\"name\": \"test\"}", mockResponse.getBody())
+        );
+    }
+
+    @Test
+    void testMockResponseWithNonExistentEndpoint() {
+        when(endpointsRepository.findEndpointByPath("/non-existent")).thenReturn(null);
+
+        MockResponse mockResponse = mockService.getMockResponseByPathAndMethod("/non-existent", HttpMethod.GET.name());
+
+        assertNull(mockResponse);
+    }
+
+    @Test
+    void testMockResponseWithNoHeaders() {
+        when(endpointsRepository.findEndpointByPath("/test/path")).thenReturn(testEndpoint);
+        when(headersRepository.findAllByEndpointsId(1L)).thenReturn(new ArrayList<>());
+        when(responsesRepository.findResponseByEndpointsIdAndMethod(1L, HttpMethod.GET.name()))
+                .thenReturn(testResponse);
+
+        MockResponse mockResponse = mockService.getMockResponseByPathAndMethod("/test/path", HttpMethod.GET.name());
+
+        assertNotNull(mockResponse);
+        assertAll(
+            () -> assertEquals(200, mockResponse.getStatusCode()),
+            () -> assertTrue(mockResponse.getHeaders().isEmpty()),
+            () -> assertEquals("{\"name\": \"test\"}", mockResponse.getBody())
+        );
+    }
+
+    @Test
+    void testMockResponseWithDifferentHttpMethod() {
+        when(endpointsRepository.findEndpointByPath("/test/path")).thenReturn(testEndpoint);
+        when(headersRepository.findAllByEndpointsId(1L)).thenReturn(testHeaders);
+        when(responsesRepository.findResponseByEndpointsIdAndMethod(1L, HttpMethod.POST.name()))
+                .thenReturn(new Responses(testEndpoint, HttpMethod.POST.name(), 
+                    MediaType.APPLICATION_JSON_VALUE, "{\"method\": \"POST\"}"));
+
+        MockResponse mockResponse = mockService.getMockResponseByPathAndMethod("/test/path", HttpMethod.POST.name());
+
+        assertNotNull(mockResponse);
+        assertAll(
+            () -> assertEquals(200, mockResponse.getStatusCode()),
+            () -> assertNotNull(mockResponse.getHeaders()),
+            () -> assertEquals("{\"method\": \"POST\"}", mockResponse.getBody())
+        );
+    }
+
+    @Test
+    void testMockResponseWithErrorStatusCode() {
+        Endpoints errorEndpoint = new Endpoints("/error/path", 500, "Error endpoint");
+        errorEndpoint.setId(2L);
+        
+        when(endpointsRepository.findEndpointByPath("/error/path")).thenReturn(errorEndpoint);
+        when(headersRepository.findAllByEndpointsId(2L)).thenReturn(testHeaders);
+        when(responsesRepository.findResponseByEndpointsIdAndMethod(2L, HttpMethod.GET.name()))
+                .thenReturn(new Responses(errorEndpoint, HttpMethod.GET.name(), 
+                    MediaType.APPLICATION_JSON_VALUE, "{\"error\": \"Internal Server Error\"}"));
+
+        MockResponse mockResponse = mockService.getMockResponseByPathAndMethod("/error/path", HttpMethod.GET.name());
+
+        assertNotNull(mockResponse);
+        assertAll(
+            () -> assertEquals(500, mockResponse.getStatusCode()),
+            () -> assertNotNull(mockResponse.getHeaders()),
+            () -> assertEquals("{\"error\": \"Internal Server Error\"}", mockResponse.getBody())
         );
     }
 }

@@ -3,7 +3,6 @@ package com.kds.mock.entity.base;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -18,7 +17,6 @@ public abstract class BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
 
     @CreatedDate
     private Timestamp createdAt;
@@ -39,5 +37,4 @@ public abstract class BaseEntity {
         createdAt = createdAt == null ? new Timestamp(System.currentTimeMillis()) : createdAt;
         updatedAt = updatedAt == null ? new Timestamp(System.currentTimeMillis()) : updatedAt;
     }
-
 }

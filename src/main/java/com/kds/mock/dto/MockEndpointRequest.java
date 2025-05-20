@@ -1,20 +1,20 @@
 package com.kds.mock.dto;
 
-import com.kds.mock.entity.Headers;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.http.HttpMethod;
 
-import java.util.List;
 import java.util.Map;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class MockEndpointRequest {
 
     private String path;
 
-    private HttpMethod method;
+    private String method;
 
     private int statusCode;
 

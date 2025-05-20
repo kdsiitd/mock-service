@@ -30,7 +30,8 @@ public class MockConfigureController {
     }
 
     @GetMapping("/list")
-    public List<?> fetchMockedEndpoints() {
-        return null;
+    public ResponseEntity<List<MockEndpointResponse>> fetchMockedEndpoints() {
+        List<MockEndpointResponse> endpoints = mockEndpointConfigureService.getAllMockEndpoints();
+        return ResponseEntity.ok(endpoints);
     }
 }

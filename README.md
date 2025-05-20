@@ -1,26 +1,95 @@
-# mock-service
+# Mock Service
 
 ## Overview
-This is the mock server implementation in Java. It supports general purpose mock implementation.
-### Service exposes
-1. Configure mock endpoint - that can be used to setup a mock Response for any endpoint.
-2. Mock API - Actual mock API, that will return configured mock response for requested resource.
+A flexible and powerful mock server implementation in Java that allows you to create and manage mock endpoints for testing and development purposes. This service provides a simple way to configure and serve mock responses for any HTTP endpoint.
 
-## How to Run
-1. Download the source code from 
-    ```
-    git clone https://github.com/kdsiitd/mock-service.git
-   
-    cd mock-service/src/main/resources
-    ```
-2. Edit the configuration file set your own configurations.
-3. Use the SQL file schema.sql to setup the database schema needed to run this application.
-4. Make sure you have Gradle configured and JDK 21 installed.
-5. Build the application
+## Features
+- Configure mock endpoints with custom responses
+- Support for different HTTP methods (GET, POST, PUT, DELETE, etc.)
+- Customizable response headers and status codes
+- JSON response body support
+- Persistent storage of mock configurations
+- RESTful API for managing mock endpoints
+
+## Prerequisites
+- JDK 21 or higher
+- Gradle 8.x or higher
+- MySQL 8.0 or higher
+
+## Database Setup
+1. Create a MySQL database named `mock_db`
+2. Run the schema.sql file located in `src/main/resources/schema.sql` to create the required tables
+
+## Configuration
+1. Update the database configuration in `src/main/resources/application.properties`:
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/mock_db
+spring.datasource.username=your_username
+spring.datasource.password=your_password
 ```
+
+## Building and Running
+1. Clone the repository:
+```bash
+git clone https://github.com/kdsiitd/mock-service.git
+cd mock-service
+```
+
+2. Build the application:
+```bash
 ./gradlew clean build
 ```
-6. Gradle bootrun to start the springboot application on http://localhost:8080
-```
+
+3. Run the application:
+```bash
 ./gradlew bootrun
 ```
+
+The application will start on http://localhost:8080
+
+## API Documentation
+
+### Configure Mock Endpoint
+```http
+POST /endpoints/configure
+Content-Type: application/json
+
+{
+    "path": "/api/users",
+    "method": "GET",
+    "statusCode": 200,
+    "responseHeaders": {
+        "Content-Type": "application/json"
+    },
+    "body": "{\"users\": []}",
+    "contentType": "application/json",
+    "description": "Mock users endpoint"
+}
+```
+
+### List Configured Endpoints
+```http
+GET /endpoints/list
+```
+
+### Mock API
+Any configured endpoint can be accessed using the configured path. For example:
+```http
+GET /api/users
+```
+
+## Testing
+Run the test suite:
+```bash
+./gradlew test
+```
+
+## Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.

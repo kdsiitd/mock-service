@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class MockEndpointConfigureServiceImpl implements MockEndpointConfigureService {
@@ -45,7 +46,7 @@ public class MockEndpointConfigureServiceImpl implements MockEndpointConfigureSe
                 headers.add(header);
             });
 
-            Responses responses = new Responses(endpoints, request.getMethod().name(), request.getContentType(),
+            Responses responses = new Responses(endpoints, request.getMethod(), request.getContentType(),
                     request.getBody());
             responsesRepository.save(responses);
 
@@ -55,5 +56,25 @@ public class MockEndpointConfigureServiceImpl implements MockEndpointConfigureSe
         }
 
         return null;
+    }
+
+    @Override
+    @Transactional
+    public List<MockEndpointResponse> getAllMockEndpoints() {
+        List<Endpoints> endpoints = endpointsRepository.findAll();
+        List<MockEndpointResponse> responses = new ArrayList<>();
+
+        for (Endpoints endpoint : endpoints) {
+            List<Headers> headers = headersRepository.findAllByEndpointsId(endpoint.getId());
+            List<Responses> endpointResponses = responsesRepository.findAll().stream()
+                    .filter(r -> r.getEndpoints().getId().equals(endpoint.getId()))
+                    .collect(Collectors.toList());
+
+            if (!endpointResponses.isEmpty()) {
+                responses.add(new MockEndpointResponse(endpoint, headers, endpointResponses.get(0)));
+            }
+        }
+
+        return responses;
     }
 }
