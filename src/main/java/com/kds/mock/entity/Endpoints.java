@@ -2,6 +2,7 @@ package com.kds.mock.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.kds.mock.entity.base.BaseEntity;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
@@ -15,14 +16,19 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
+@Schema(description = "Mock endpoint configuration entity")
 public class Endpoints extends BaseEntity {
+    
+    @Schema(description = "URL path of the mock endpoint", example = "/api/users")
     private String path;
 
     /**
      * should have values from HTTPStatus.value()
      */
+    @Schema(description = "HTTP status code to return", example = "200")
     private int statusCode;
 
+    @Schema(description = "Description of the endpoint", example = "Mock users endpoint")
     private String description;
 
     @OneToMany(mappedBy = "endpoints", cascade = jakarta.persistence.CascadeType.ALL)
