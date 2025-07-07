@@ -14,60 +14,35 @@ import java.util.Map;
 @Setter
 @NoArgsConstructor
 @Schema(
-    description = "Request object for configuring a new mock endpoint",
+    description = "Request object for updating an existing mock endpoint",
     example = """
         {
-            "path": "/api/users",
-            "method": "GET",
             "statusCode": 200,
             "responseHeaders": {
                 "Content-Type": "application/json",
-                "Cache-Control": "no-cache"
+                "Cache-Control": "max-age=3600"
             },
-            "body": "{\\"users\\": [{\\"id\\": 1, \\"name\\": \\"John Doe\\"}]}",
+            "body": "{\\"users\\": [{\\"id\\": 1, \\"name\\": \\"Updated User\\"}]}",
             "contentType": "application/json",
-            "description": "Mock users endpoint for testing"
+            "description": "Updated mock users endpoint"
         }
         """
 )
-public class MockEndpointRequest {
-
-    @Schema(
-        description = "The URL path for the mock endpoint",
-        example = "/api/users",
-        requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    @NotBlank(message = "Path is required")
-    @Pattern(regexp = "^/.*", message = "Path must start with /")
-    @Size(min = 2, max = 512, message = "Path must be between 2 and 512 characters")
-    private String path;
-
-    @Schema(
-        description = "HTTP method for the endpoint",
-        example = "GET",
-        allowableValues = {"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"},
-        requiredMode = Schema.RequiredMode.REQUIRED
-    )
-    @NotBlank(message = "HTTP method is required")
-    @Pattern(regexp = "^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)$", 
-             message = "Invalid HTTP method. Allowed values: GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS")
-    private String method;
+public class UpdateMockEndpointRequest {
 
     @Schema(
         description = "HTTP status code to return",
         example = "200",
         minimum = "100",
-        maximum = "599",
-        requiredMode = Schema.RequiredMode.REQUIRED
+        maximum = "599"
     )
-    @NotNull(message = "Status code is required")
     @Min(value = 100, message = "Status code must be between 100 and 599")
     @Max(value = 599, message = "Status code must be between 100 and 599")
     private Integer statusCode;
 
     @Schema(
         description = "Response headers to include in the mock response",
-        example = "{\"Content-Type\": \"application/json\", \"Cache-Control\": \"no-cache\"}"
+        example = "{\"Content-Type\": \"application/json\", \"Cache-Control\": \"max-age=3600\"}"
     )
     @Size(max = 50, message = "Cannot have more than 50 response headers")
     private Map<@NotBlank(message = "Header name cannot be blank") 
@@ -77,7 +52,7 @@ public class MockEndpointRequest {
 
     @Schema(
         description = "Response body content",
-        example = "{\"users\": [{\"id\": 1, \"name\": \"John Doe\"}]}"
+        example = "{\"users\": [{\"id\": 1, \"name\": \"Updated User\"}]}"
     )
     @Size(max = 65535, message = "Response body cannot exceed 65535 characters")
     private String body;
@@ -93,7 +68,7 @@ public class MockEndpointRequest {
 
     @Schema(
         description = "Description of the mock endpoint",
-        example = "Mock users endpoint for testing user management APIs"
+        example = "Updated mock users endpoint"
     )
     @Size(min = 5, max = 255, message = "Description must be between 5 and 255 characters")
     private String description;
@@ -134,21 +109,4 @@ public class MockEndpointRequest {
         }
         return true;
     }
-
-    /**
-     * Custom validation method to ensure reasonable status codes for methods
-     */
-    @AssertTrue(message = "Status code should be appropriate for the HTTP method")
-    private boolean isStatusCodeAppropriateForMethod() {
-        if (statusCode == null || method == null) {
-            return true; // Let other validations handle null values
-        }
-        
-        return switch (method.toUpperCase()) {
-            case "POST" -> statusCode >= 200 && statusCode <= 299;
-            case "GET", "PUT", "DELETE", "PATCH" -> statusCode >= 200 && statusCode <= 299 || statusCode >= 400;
-            case "HEAD", "OPTIONS" -> statusCode >= 200 && statusCode <= 299 || statusCode == 404 || statusCode == 405;
-            default -> true;
-        };
-    }
-}
+} 

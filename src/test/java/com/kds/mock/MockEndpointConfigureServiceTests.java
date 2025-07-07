@@ -9,6 +9,7 @@ import com.kds.mock.repository.EndpointsRepository;
 import com.kds.mock.repository.HeadersRepository;
 import com.kds.mock.repository.ResponsesRepository;
 import com.kds.mock.service.MockEndpointConfigureService;
+import com.kds.mock.service.LoadTestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,9 @@ class MockEndpointConfigureServiceTests {
 
     @MockBean
     private ResponsesRepository responsesRepository;
+
+    @MockBean
+    private LoadTestService loadTestService;
 
     private MockEndpointRequest mockRequest;
     private Endpoints savedEndpoint;
@@ -100,9 +104,10 @@ class MockEndpointConfigureServiceTests {
     void testSaveMockEndpointWithError() {
         when(endpointsRepository.save(any(Endpoints.class))).thenThrow(new RuntimeException("Database error"));
 
-        MockEndpointResponse response = mockEndpointConfigureService.saveMockEndpoint(mockRequest);
+        assertThrows(RuntimeException.class, () -> {
+            mockEndpointConfigureService.saveMockEndpoint(mockRequest);
+        });
 
-        assertNull(response);
         verify(endpointsRepository, times(1)).save(any(Endpoints.class));
         verify(headersRepository, never()).save(any(Headers.class));
         verify(responsesRepository, never()).save(any(Responses.class));

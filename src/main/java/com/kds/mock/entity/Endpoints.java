@@ -1,8 +1,10 @@
 package com.kds.mock.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.kds.mock.entity.base.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
@@ -30,6 +32,11 @@ public class Endpoints extends BaseEntity {
 
     @Schema(description = "Description of the endpoint", example = "Mock users endpoint")
     private String description;
+
+    @Column(columnDefinition = "TEXT")
+    @Schema(description = "Load testing configuration for this endpoint (JSON format)")
+    @JsonIgnore
+    private String loadTestConfig;
 
     @OneToMany(mappedBy = "endpoints", cascade = jakarta.persistence.CascadeType.ALL)
     @JsonManagedReference

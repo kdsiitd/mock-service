@@ -3,38 +3,57 @@ package com.kds.mock.entity.base;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @CreatedDate
-    private Timestamp createdAt;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     @LastModifiedDate
-    private Timestamp updatedAt;
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
-    @CreatedBy
-    private String createdBy;
+    @Column(name = "created_by", length = 100)
+    private String createdBy = "SYSTEM";
 
-    @LastModifiedBy
-    private String updatedBy;
+    @Column(name = "updated_by", length = 100)
+    private String updatedBy = "SYSTEM";
 
     @PrePersist
-    public void prePersist() {
-        createdBy = createdBy == null ? "SYSTEM" : createdBy;
-        updatedBy = updatedBy == null ? "SYSTEM" : updatedBy;
-        createdAt = createdAt == null ? new Timestamp(System.currentTimeMillis()) : createdAt;
-        updatedAt = updatedAt == null ? new Timestamp(System.currentTimeMillis()) : updatedAt;
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+        if (updatedAt == null) {
+            updatedAt = LocalDateTime.now();
+        }
+        if (createdBy == null) {
+            createdBy = "SYSTEM";
+        }
+        if (updatedBy == null) {
+            updatedBy = "SYSTEM";
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+        if (updatedBy == null) {
+            updatedBy = "SYSTEM";
+        }
     }
 }

@@ -103,7 +103,9 @@ class MockServiceTests {
         assertNotNull(mockResponse);
         assertAll(
             () -> assertEquals(200, mockResponse.getStatusCode()),
-            () -> assertTrue(mockResponse.getHeaders().isEmpty()),
+            () -> assertNotNull(mockResponse.getHeaders()),
+            () -> assertEquals(MediaType.APPLICATION_JSON_VALUE,
+                Objects.requireNonNull(mockResponse.getHeaders().getContentType()).toString()),
             () -> assertEquals("{\"name\": \"test\"}", mockResponse.getBody())
         );
     }

@@ -27,6 +27,7 @@ public class Responses extends BaseEntity {
     @Schema(description = "Content type of the response", example = "application/json")
     private String contentType;
 
+    @Column(columnDefinition = "TEXT")
     @Schema(description = "Response body content", example = "{\"message\": \"Hello World\"}")
     private String body;
 

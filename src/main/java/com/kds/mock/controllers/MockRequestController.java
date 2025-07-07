@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,14 +19,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 @Tag(
     name = "Mock Responses", 
     description = "Dynamic mock endpoints that serve configured responses. These endpoints are created automatically when you configure mock endpoints and will respond according to your configuration."
 )
 public class MockRequestController {
 
-    @Autowired
-    private MockService mockEndpointService;
+    private final MockService mockEndpointService;
 
     @Operation(
         summary = "Handle mock API requests",
@@ -68,14 +68,23 @@ public class MockRequestController {
                                     {
                                         "id": 1,
                                         "name": "John Doe",
-                                        "email": "john@example.com"
+                                        "email": "john@example.com",
+                                        "role": "admin",
+                                        "active": true,
+                                        "createdAt": "2024-01-15T10:30:00Z"
                                     },
                                     {
                                         "id": 2,
                                         "name": "Jane Smith", 
-                                        "email": "jane@example.com"
+                                        "email": "jane@example.com",
+                                        "role": "user",
+                                        "active": true,
+                                        "createdAt": "2024-01-14T15:20:00Z"
                                     }
-                                ]
+                                ],
+                                "total": 2,
+                                "page": 1,
+                                "limit": 10
                             }
                             """
                     ),
@@ -87,8 +96,11 @@ public class MockRequestController {
                                 "id": 123,
                                 "name": "New User",
                                 "email": "newuser@example.com",
+                                "role": "user",
+                                "active": true,
                                 "created": true,
-                                "createdAt": "2024-01-15T10:30:00Z"
+                                "createdAt": "2024-01-15T10:30:00Z",
+                                "message": "User created successfully"
                             }
                             """
                     ),
@@ -99,10 +111,86 @@ public class MockRequestController {
                             {
                                 "id": 123,
                                 "name": "Sample Product",
+                                "description": "A high-quality sample product for testing",
                                 "price": 29.99,
+                                "currency": "USD",
                                 "category": "Electronics",
-                                "inStock": true
+                                "brand": "SampleBrand",
+                                "inStock": true,
+                                "stockQuantity": 150,
+                                "tags": ["electronics", "gadget", "sample"],
+                                "createdAt": "2024-01-10T08:00:00Z",
+                                "updatedAt": "2024-01-15T10:30:00Z"
                             }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "Order Response",
+                        description = "Example response for GET /api/orders/456",
+                        value = """
+                            {
+                                "id": 456,
+                                "orderNumber": "ORD-2024-001",
+                                "customerId": 123,
+                                "status": "confirmed",
+                                "items": [
+                                    {
+                                        "productId": 123,
+                                        "productName": "Sample Product",
+                                        "quantity": 2,
+                                        "price": 29.99,
+                                        "total": 59.98
+                                    }
+                                ],
+                                "subtotal": 59.98,
+                                "tax": 5.40,
+                                "shipping": 9.99,
+                                "total": 75.37,
+                                "currency": "USD",
+                                "shippingAddress": {
+                                    "street": "123 Main St",
+                                    "city": "Anytown",
+                                    "state": "CA",
+                                    "zipCode": "12345",
+                                    "country": "USA"
+                                },
+                                "createdAt": "2024-01-15T10:30:00Z",
+                                "estimatedDelivery": "2024-01-20T00:00:00Z"
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "XML Response",
+                        description = "Example XML response for legacy systems",
+                        value = """
+                            <?xml version="1.0" encoding="UTF-8"?>
+                            <response>
+                                <status>success</status>
+                                <data>
+                                    <users>
+                                        <user id="1">
+                                            <name>John Doe</name>
+                                            <email>john@example.com</email>
+                                            <active>true</active>
+                                        </user>
+                                        <user id="2">
+                                            <name>Jane Smith</name>
+                                            <email>jane@example.com</email>
+                                            <active>true</active>
+                                        </user>
+                                    </users>
+                                </data>
+                            </response>
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "CSV Response",
+                        description = "Example CSV response for data export",
+                        value = """
+                            id,name,email,role,active,createdAt
+                            1,John Doe,john@example.com,admin,true,2024-01-15T10:30:00Z
+                            2,Jane Smith,jane@example.com,user,true,2024-01-14T15:20:00Z
+                            3,Bob Johnson,bob@example.com,user,false,2024-01-13T12:15:00Z
                             """
                     )
                 }
